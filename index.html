@@ -89,7 +89,7 @@
     <div id="particle-layer" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
 
     <main class="relative z-10 w-full max-w-3xl my-10 rounded-[2rem] border border-fuchsia-400/30 bg-slate-900/80 p-8 shadow-[0_25px_100px_rgba(0,0,0,0.45)] backdrop-blur xl:p-12">
-      <div x-data="{ waves: 0, mood: 'curious', score: 0, gameMessage: 'Hit the glowing orb to start!', factIndex: 0, facts: ['I love turning ideas into something people can click and explore.', 'I am learning how to build with GitHub and make small web experiences feel alive.', 'I enjoy mixing creativity with code and seeing it come to life.'] }" class="space-y-8">
+      <div x-data="{ waves: 0, mood: 'curious', points: 0, totalEarned: 0, multiplier: 1, upgradeMessage: 'Spend your points on a boost!', gameMessage: 'Hit the glowing orb to start!', factIndex: 0, facts: ['I love turning ideas into something people can click and explore.', 'I am learning how to build with GitHub and make small web experiences feel alive.', 'I enjoy mixing creativity with code and seeing it come to life.'], earnPoints() { this.points += this.multiplier; this.totalEarned += this.multiplier; this.gameMessage = 'Nice hit! Keep going!'; }, buyUpgrade(cost, label, amount) { if (this.points >= cost) { this.points -= cost; this.multiplier += amount; this.upgradeMessage = `${label} unlocked!`; this.gameMessage = `${label} bought!`; } else { this.upgradeMessage = 'Not enough points yet.'; this.gameMessage = 'Need more points first.'; } }, resetGame() { this.points = 0; this.totalEarned = 0; this.multiplier = 1; this.gameMessage = 'Reset! Try again!'; this.upgradeMessage = 'Fresh start — earn points and upgrade!'; } }" class="space-y-8">
         <section class="rounded-2xl border border-fuchsia-400/30 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-cyan-500 p-6 text-white shadow-[0_0_30px_rgba(34,211,238,0.2)]">
           <div class="flex items-center justify-between gap-4">
             <div>
@@ -174,20 +174,37 @@
 
         <section class="rounded-2xl border border-fuchsia-400/30 bg-gradient-to-br from-slate-900 to-slate-800 p-5">
           <h2 class="text-xl font-semibold text-slate-100">Mini game</h2>
-          <p class="mt-2 text-slate-400">Tap the glowing orb to build your score.</p>
+          <p class="mt-2 text-slate-400">Tap the glowing orb to earn points, then spend them on upgrades.</p>
           <div class="mt-4 flex flex-wrap items-center gap-4">
-            <button @click="score++; gameMessage = 'Nice hit! Keep going!'" class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.5)] transition hover:scale-110">
+            <button @click="earnPoints()" class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.5)] transition hover:scale-110">
               <span class="text-3xl font-black text-white">⚡</span>
             </button>
             <div>
-              <p class="text-sm font-semibold text-cyan-300">Score</p>
-              <p class="text-2xl font-bold text-slate-100" x-text="score"></p>
+              <p class="text-sm font-semibold text-cyan-300">Points</p>
+              <p class="text-2xl font-bold text-slate-100" x-text="points"></p>
             </div>
-            <button @click="score = 0; gameMessage = 'Reset! Try again!'" class="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-cyan-400">
+            <div>
+              <p class="text-sm font-semibold text-cyan-300">Multiplier</p>
+              <p class="text-2xl font-bold text-slate-100" x-text="multiplier + 'x'"></p>
+            </div>
+            <button @click="resetGame()" class="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-cyan-400">
               Reset
             </button>
           </div>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button @click="buyUpgrade(5, 'Glow Boost', 1)" class="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-fuchsia-500/20">
+              Glow Boost · 5 pts
+            </button>
+            <button @click="buyUpgrade(10, 'Nova Burst', 2)" class="rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-cyan-500/20">
+              Nova Burst · 10 pts
+            </button>
+            <button @click="buyUpgrade(20, 'Mega Pulse', 4)" class="rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-amber-500/20">
+              Mega Pulse · 20 pts
+            </button>
+          </div>
           <p class="mt-3 text-sm text-slate-300" x-text="gameMessage"></p>
+          <p class="mt-1 text-sm text-cyan-300" x-text="upgradeMessage"></p>
+          <p class="mt-2 text-xs uppercase tracking-[0.25em] text-slate-500">Earned total: <span x-text="totalEarned"></span></p>
         </section>
       </div>
 
