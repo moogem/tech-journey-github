@@ -150,11 +150,36 @@
         achievementToast: '',
         achievements: [],
         achievementsOpen: true,
+        activeTab: 'upgrades',
+        volume: 0.7,
+        performanceMode: false,
+        compactMode: false,
+        showParticles: true,
         upgradeLevels: { tap: 0, burst: 0, auto: 0, reactor: 0, boost: 0, loop: 0 },
         holdActive: false,
         holdTimer: null,
         factIndex: 0,
         facts: ['I love turning ideas into something people can click and explore.', 'I am learning how to build with GitHub and make small web experiences feel alive.', 'I enjoy mixing creativity with code and seeing it come to life.'],
+        setActiveTab(tab) {
+          this.activeTab = tab;
+        },
+        syncVisualSettings() {
+          const particleLayer = document.getElementById('particle-layer');
+          if (particleLayer) {
+            particleLayer.style.display = this.performanceMode || !this.showParticles ? 'none' : 'block';
+          }
+        },
+        toggleParticles() {
+          this.showParticles = !this.showParticles;
+          this.syncVisualSettings();
+        },
+        togglePerformanceMode() {
+          this.performanceMode = !this.performanceMode;
+          if (this.performanceMode) {
+            this.compactMode = true;
+          }
+          this.syncVisualSettings();
+        },
         unlockAchievement(name, bonus = null) {
           if (!this.achievements.includes(name)) {
             this.achievements.push(name);
@@ -265,7 +290,7 @@
           this.upgradeLevels = { tap: 0, burst: 0, auto: 0, reactor: 0, boost: 0, loop: 0 };
           this.message = 'Fresh start! Build your empire.';
         }
-      }" x-init="setInterval(() => { if (this.autoRate > 0) { this.points += this.autoRate; } }, 1000)" class="space-y-8">
+      }" x-init="setInterval(() => { if (this.autoRate > 0) { this.points += this.autoRate; } }, 1000); this.syncVisualSettings();" class="space-y-8">
         <section class="rounded-2xl border border-fuchsia-400/30 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-cyan-500 p-6 text-white shadow-[0_0_30px_rgba(34,211,238,0.2)]">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -325,113 +350,146 @@
           </div>
         </section>
 
-        <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
-          <button @click="achievementsOpen = !achievementsOpen" class="flex w-full items-center justify-between gap-3 text-left">
-            <div>
-              <h2 class="text-xl font-semibold text-slate-100">Achievements</h2>
-              <p class="text-sm text-slate-400" x-text="achievements.length + ' unlocked'"></p>
-            </div>
-            <span class="text-lg text-cyan-300" x-text="achievementsOpen ? '▾' : '▸'"></span>
-          </button>
-          <div x-show="achievementsOpen" x-transition class="mt-4 grid gap-3 md:grid-cols-2">
-            <template x-for="achievement in ['First Spark', 'Glow-Up', 'Tap Master', 'Auto Empire', 'Power Surge', 'Neon Legend', 'Combo Storm', 'Reactor Awake', 'Arcade Legend']" :key="achievement">
-              <div class="rounded-xl border px-3 py-3 text-sm" :class="achievements.includes(achievement) ? 'border-cyan-400/60 bg-cyan-500/15 text-cyan-100' : 'border-slate-700 bg-slate-900/60 text-slate-400'">
-                <div class="font-semibold" x-text="achievement"></div>
-                <div class="mt-1 text-xs" x-text="achievement === 'First Spark' ? 'Reach 10 taps' : achievement === 'Glow-Up' ? 'Earn 100 points' : achievement === 'Tap Master' ? 'Own 3 tap upgrades' : achievement === 'Auto Empire' ? 'Reach 3 auto/sec' : achievement === 'Power Surge' ? 'Boost your multiplier to 3x' : achievement === 'Neon Legend' ? 'Hit 500 points' : achievement === 'Combo Storm' ? 'Reach 50 taps' : achievement === 'Reactor Awake' ? 'Buy your first reactor' : 'Reach 1000 points'" ></div>
+        <div class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <div class="space-y-6">
+            <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
+              <h2 class="text-xl font-semibold text-slate-100">Progress goals</h2>
+              <div class="mt-3 space-y-2 text-sm text-slate-300">
+                <p x-show="totalClicks >= 10">✓ 10 taps reached</p>
+                <p x-show="points >= 50">✓ 50-point milestone</p>
+                <p x-show="autoRate >= 2">✓ Auto-clicker online</p>
+                <p x-show="points >= 500">✓ Neon Legend unlocked</p>
               </div>
-            </template>
+            </section>
           </div>
-          <div class="mt-3 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100" x-show="achievementToast">
-            <span x-text="'Achievement unlocked: ' + achievementToast"></span>
-          </div>
-        </section>
 
-        <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
-          <h2 class="text-xl font-semibold text-slate-100">Upgrades</h2>
-          <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <div id="tap-card" class="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 p-3">
-              <button @mousedown="startHold('tap', 'Tap Boost', 10, 'tap', 1, 'tap-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-fuchsia-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-fuchsia-500/20">
-                <div class="text-base">Tap Boost</div>
-                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="10 + upgradeLevels.tap * 4"></span> pts</div>
-                <div class="mt-1 text-xs text-cyan-300">+1 per tap</div>
-                <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.tap"></span></div>
-              </button>
-              <div class="mt-2 flex gap-2">
-                <button @click="buyUpgrade('tap', 'Tap Boost', 10, 'tap', 1, 'tap-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
-                <button @click="buyBulkUpgrade('tap', 'Tap Boost', 10, 'tap', 1, 5, 'tap-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 5</button>
+          <aside class="space-y-4">
+            <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-4">
+              <div class="flex flex-wrap gap-2">
+                <button @click="setActiveTab('upgrades')" class="rounded-full border px-3 py-2 text-sm font-semibold transition" :class="activeTab === 'upgrades' ? 'border-cyan-400/40 bg-cyan-500/20 text-cyan-100' : 'border-slate-600 text-slate-300'">Upgrades</button>
+                <button @click="setActiveTab('achievements')" class="rounded-full border px-3 py-2 text-sm font-semibold transition" :class="activeTab === 'achievements' ? 'border-cyan-400/40 bg-cyan-500/20 text-cyan-100' : 'border-slate-600 text-slate-300'">Achievements</button>
+                <button @click="setActiveTab('settings')" class="rounded-full border px-3 py-2 text-sm font-semibold transition" :class="activeTab === 'settings' ? 'border-cyan-400/40 bg-cyan-500/20 text-cyan-100' : 'border-slate-600 text-slate-300'">Settings</button>
               </div>
-            </div>
-            <div id="burst-card" class="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3">
-              <button @mousedown="startHold('burst', 'Burst Charge', 24, 'tap', 3, 'burst-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-rose-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-rose-500/20">
-                <div class="text-base">Burst Charge</div>
-                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="24 + upgradeLevels.burst * 5"></span> pts</div>
-                <div class="mt-1 text-xs text-cyan-300">+3 per tap</div>
-                <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.burst"></span></div>
-              </button>
-              <div class="mt-2 flex gap-2">
-                <button @click="buyUpgrade('burst', 'Burst Charge', 24, 'tap', 3, 'burst-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
-                <button @click="buyBulkUpgrade('burst', 'Burst Charge', 24, 'tap', 3, 3, 'burst-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 3</button>
-              </div>
-            </div>
-            <div id="auto-card" class="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-3">
-              <button @mousedown="startHold('auto', 'Auto Clicker', 30, 'auto', 1, 'auto-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-cyan-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-cyan-500/20">
-                <div class="text-base">Auto Clicker</div>
-                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="30 + upgradeLevels.auto * 5"></span> pts</div>
-                <div class="mt-1 text-xs text-cyan-300">+1 auto/sec</div>
-                <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.auto"></span></div>
-              </button>
-              <div class="mt-2 flex gap-2">
-                <button @click="buyUpgrade('auto', 'Auto Clicker', 30, 'auto', 1, 'auto-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
-                <button @click="buyBulkUpgrade('auto', 'Auto Clicker', 30, 'auto', 1, 3, 'auto-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 3</button>
-              </div>
-            </div>
-            <div id="reactor-card" class="rounded-xl border border-violet-400/40 bg-violet-500/10 p-3">
-              <button @mousedown="startHold('reactor', 'Spark Reactor', 60, 'auto', 3, 'reactor-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-violet-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-violet-500/20">
-                <div class="text-base">Spark Reactor</div>
-                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="60 + upgradeLevels.reactor * 6"></span> pts</div>
-                <div class="mt-1 text-xs text-cyan-300">+3 auto/sec</div>
-                <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.reactor"></span></div>
-              </button>
-              <div class="mt-2 flex gap-2">
-                <button @click="buyUpgrade('reactor', 'Spark Reactor', 60, 'auto', 3, 'reactor-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
-                <button @click="buyBulkUpgrade('reactor', 'Spark Reactor', 60, 'auto', 3, 2, 'reactor-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 2</button>
-              </div>
-            </div>
-            <div id="boost-card" class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3">
-              <button @mousedown="startHold('boost', 'Mega Boost', 50, 'boost', 1, 'boost-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-amber-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-amber-500/20">
-                <div class="text-base">Mega Boost</div>
-                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="50 + upgradeLevels.boost * 6"></span> pts</div>
-                <div class="mt-1 text-xs text-cyan-300">+1 multiplier</div>
-                <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.boost"></span></div>
-              </button>
-              <div class="mt-2 flex gap-2">
-                <button @click="buyUpgrade('boost', 'Mega Boost', 50, 'boost', 1, 'boost-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
-                <button @click="buyBulkUpgrade('boost', 'Mega Boost', 50, 'boost', 1, 2, 'boost-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 2</button>
-              </div>
-            </div>
-            <div id="loop-card" class="rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-3">
-              <button @mousedown="startHold('loop', 'Momentum Loop', 90, 'boost', 2, 'loop-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-emerald-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-emerald-500/20">
-                <div class="text-base">Momentum Loop</div>
-                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="90 + upgradeLevels.loop * 7"></span> pts</div>
-                <div class="mt-1 text-xs text-cyan-300">+2 multiplier</div>
-                <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.loop"></span></div>
-              </button>
-              <div class="mt-2 flex gap-2">
-                <button @click="buyUpgrade('loop', 'Momentum Loop', 90, 'boost', 2, 'loop-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
-                <button @click="buyBulkUpgrade('loop', 'Momentum Loop', 90, 'boost', 2, 1, 'loop-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 1</button>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
-          <h2 class="text-xl font-semibold text-slate-100">Progress goals</h2>
-          <div class="mt-3 space-y-2 text-sm text-slate-300">
-            <p x-show="totalClicks >= 10">✓ 10 taps reached</p>
-            <p x-show="points >= 50">✓ 50-point milestone</p>
-            <p x-show="autoRate >= 2">✓ Auto-clicker online</p>
-          </div>
-        </section>
+              <div x-show="activeTab === 'upgrades'" x-transition class="mt-4 space-y-3">
+                <div class="grid gap-3" :class="compactMode ? 'md:grid-cols-1' : 'md:grid-cols-2'">
+                  <div id="tap-card" class="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 p-3">
+                    <button @mousedown="startHold('tap', 'Tap Boost', 10, 'tap', 1, 'tap-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-fuchsia-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-fuchsia-500/20">
+                      <div class="text-base">Tap Boost</div>
+                      <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="10 + upgradeLevels.tap * 4"></span> pts</div>
+                      <div class="mt-1 text-xs text-cyan-300">+1 per tap</div>
+                      <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.tap"></span></div>
+                    </button>
+                    <div class="mt-2 flex gap-2">
+                      <button @click="buyUpgrade('tap', 'Tap Boost', 10, 'tap', 1, 'tap-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                      <button @click="buyBulkUpgrade('tap', 'Tap Boost', 10, 'tap', 1, 5, 'tap-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 5</button>
+                    </div>
+                  </div>
+                  <div id="burst-card" class="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3">
+                    <button @mousedown="startHold('burst', 'Burst Charge', 24, 'tap', 3, 'burst-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-rose-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-rose-500/20">
+                      <div class="text-base">Burst Charge</div>
+                      <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="24 + upgradeLevels.burst * 5"></span> pts</div>
+                      <div class="mt-1 text-xs text-cyan-300">+3 per tap</div>
+                      <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.burst"></span></div>
+                    </button>
+                    <div class="mt-2 flex gap-2">
+                      <button @click="buyUpgrade('burst', 'Burst Charge', 24, 'tap', 3, 'burst-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                      <button @click="buyBulkUpgrade('burst', 'Burst Charge', 24, 'tap', 3, 3, 'burst-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 3</button>
+                    </div>
+                  </div>
+                  <div id="auto-card" class="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-3">
+                    <button @mousedown="startHold('auto', 'Auto Clicker', 30, 'auto', 1, 'auto-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-cyan-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-cyan-500/20">
+                      <div class="text-base">Auto Clicker</div>
+                      <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="30 + upgradeLevels.auto * 5"></span> pts</div>
+                      <div class="mt-1 text-xs text-cyan-300">+1 auto/sec</div>
+                      <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.auto"></span></div>
+                    </button>
+                    <div class="mt-2 flex gap-2">
+                      <button @click="buyUpgrade('auto', 'Auto Clicker', 30, 'auto', 1, 'auto-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                      <button @click="buyBulkUpgrade('auto', 'Auto Clicker', 30, 'auto', 1, 3, 'auto-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 3</button>
+                    </div>
+                  </div>
+                  <div id="reactor-card" class="rounded-xl border border-violet-400/40 bg-violet-500/10 p-3">
+                    <button @mousedown="startHold('reactor', 'Spark Reactor', 60, 'auto', 3, 'reactor-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-violet-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-violet-500/20">
+                      <div class="text-base">Spark Reactor</div>
+                      <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="60 + upgradeLevels.reactor * 6"></span> pts</div>
+                      <div class="mt-1 text-xs text-cyan-300">+3 auto/sec</div>
+                      <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.reactor"></span></div>
+                    </button>
+                    <div class="mt-2 flex gap-2">
+                      <button @click="buyUpgrade('reactor', 'Spark Reactor', 60, 'auto', 3, 'reactor-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                      <button @click="buyBulkUpgrade('reactor', 'Spark Reactor', 60, 'auto', 3, 2, 'reactor-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 2</button>
+                    </div>
+                  </div>
+                  <div id="boost-card" class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3">
+                    <button @mousedown="startHold('boost', 'Mega Boost', 50, 'boost', 1, 'boost-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-amber-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-amber-500/20">
+                      <div class="text-base">Mega Boost</div>
+                      <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="50 + upgradeLevels.boost * 6"></span> pts</div>
+                      <div class="mt-1 text-xs text-cyan-300">+1 multiplier</div>
+                      <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.boost"></span></div>
+                    </button>
+                    <div class="mt-2 flex gap-2">
+                      <button @click="buyUpgrade('boost', 'Mega Boost', 50, 'boost', 1, 'boost-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                      <button @click="buyBulkUpgrade('boost', 'Mega Boost', 50, 'boost', 1, 2, 'boost-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 2</button>
+                    </div>
+                  </div>
+                  <div id="loop-card" class="rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-3">
+                    <button @mousedown="startHold('loop', 'Momentum Loop', 90, 'boost', 2, 'loop-card')" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-emerald-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-emerald-500/20">
+                      <div class="text-base">Momentum Loop</div>
+                      <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="90 + upgradeLevels.loop * 7"></span> pts</div>
+                      <div class="mt-1 text-xs text-cyan-300">+2 multiplier</div>
+                      <div class="mt-1 text-[11px] text-slate-400">Owned: <span x-text="upgradeLevels.loop"></span></div>
+                    </button>
+                    <div class="mt-2 flex gap-2">
+                      <button @click="buyUpgrade('loop', 'Momentum Loop', 90, 'boost', 2, 'loop-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                      <button @click="buyBulkUpgrade('loop', 'Momentum Loop', 90, 'boost', 2, 1, 'loop-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 1</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div x-show="activeTab === 'achievements'" x-transition class="mt-4 space-y-3">
+                <div class="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100" x-show="achievementToast">
+                  <span x-text="'Achievement unlocked: ' + achievementToast"></span>
+                </div>
+                <div class="grid gap-3" :class="compactMode ? 'md:grid-cols-1' : 'md:grid-cols-2'">
+                  <template x-for="achievement in ['First Spark', 'Glow-Up', 'Tap Master', 'Auto Empire', 'Power Surge', 'Neon Legend', 'Combo Storm', 'Reactor Awake', 'Arcade Legend']" :key="achievement">
+                    <div class="rounded-xl border px-3 py-3 text-sm" :class="achievements.includes(achievement) ? 'border-cyan-400/60 bg-cyan-500/15 text-cyan-100' : 'border-slate-700 bg-slate-900/60 text-slate-400'">
+                      <div class="font-semibold" x-text="achievement"></div>
+                      <div class="mt-1 text-xs" x-text="achievement === 'First Spark' ? 'Reach 10 taps' : achievement === 'Glow-Up' ? 'Earn 100 points' : achievement === 'Tap Master' ? 'Own 3 tap upgrades' : achievement === 'Auto Empire' ? 'Reach 3 auto/sec' : achievement === 'Power Surge' ? 'Boost your multiplier to 3x' : achievement === 'Neon Legend' ? 'Hit 500 points' : achievement === 'Combo Storm' ? 'Reach 50 taps' : achievement === 'Reactor Awake' ? 'Buy your first reactor' : 'Reach 1000 points'" ></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <div x-show="activeTab === 'settings'" x-transition class="mt-4 space-y-3 text-sm text-slate-300">
+                <label class="block">
+                  <div class="mb-2 flex items-center justify-between">
+                    <span>Volume</span>
+                    <span class="text-cyan-300" x-text="Math.round(volume * 100) + '%'" ></span>
+                  </div>
+                  <input type="range" min="0" max="1" step="0.1" x-model.number="volume" class="w-full accent-cyan-400" />
+                </label>
+                <button @click="togglePerformanceMode()" class="flex w-full items-center justify-between rounded-xl border border-slate-600 px-3 py-2 text-left">
+                  <span>Performance mode</span>
+                  <span class="text-cyan-300" x-text="performanceMode ? 'On' : 'Off'"></span>
+                </button>
+                <button @click="toggleParticles()" class="flex w-full items-center justify-between rounded-xl border border-slate-600 px-3 py-2 text-left">
+                  <span>Particles</span>
+                  <span class="text-cyan-300" x-text="showParticles ? 'On' : 'Off'"></span>
+                </button>
+                <button @click="compactMode = !compactMode" class="flex w-full items-center justify-between rounded-xl border border-slate-600 px-3 py-2 text-left">
+                  <span>Compact view</span>
+                  <span class="text-cyan-300" x-text="compactMode ? 'On' : 'Off'"></span>
+                </button>
+                <div class="rounded-xl border border-slate-600 bg-slate-900/60 p-3 text-xs text-slate-400">
+                  <div class="font-semibold text-slate-200">Display tips</div>
+                  <div class="mt-1">Performance mode hides the floating particles for smoother play.</div>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
       </div>
 
       <footer class="mt-8 text-center text-sm text-slate-500">
