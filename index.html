@@ -100,6 +100,8 @@
         combo: 1,
         message: 'Tap the orb to begin!',
         upgradeLevels: { tap: 0, auto: 0, boost: 0 },
+        holdActive: false,
+        holdTimer: null,
         factIndex: 0,
         facts: ['I love turning ideas into something people can click and explore.', 'I am learning how to build with GitHub and make small web experiences feel alive.', 'I enjoy mixing creativity with code and seeing it come to life.'],
         clickOrb() {
@@ -119,6 +121,29 @@
             this.message = label + ' unlocked!';
           } else {
             this.message = 'Not enough points!';
+          }
+        },
+        buyBulkUpgrade(key, label, cost, stat, amount, quantity) {
+          let remaining = quantity;
+          while (remaining > 0 && this.points >= cost + this.upgradeLevels[key] * 4) {
+            this.buyUpgrade(key, label, cost + this.upgradeLevels[key] * 4, stat, amount);
+            remaining -= 1;
+          }
+          if (remaining > 0) {
+            this.message = 'Not enough points for the full bulk buy.';
+          }
+        },
+        startHold(key, label, cost, stat, amount) {
+          this.holdActive = true;
+          this.holdTimer = setInterval(() => {
+            this.buyUpgrade(key, label, cost + this.upgradeLevels[key] * 4, stat, amount);
+          }, 150);
+        },
+        stopHold() {
+          this.holdActive = false;
+          if (this.holdTimer) {
+            clearInterval(this.holdTimer);
+            this.holdTimer = null;
           }
         },
         resetGame() {
@@ -194,21 +219,39 @@
         <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
           <h2 class="text-xl font-semibold text-slate-100">Upgrades</h2>
           <div class="mt-4 grid gap-3 md:grid-cols-3">
-            <button @click="buyUpgrade('tap', 'Tap Boost', 10, 'tap', 1)" class="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-fuchsia-500/20">
-              <div class="text-base">Tap Boost</div>
-              <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="10 + upgradeLevels.tap * 4"></span> pts</div>
-              <div class="mt-1 text-xs text-cyan-300">+1 per tap</div>
-            </button>
-            <button @click="buyUpgrade('auto', 'Auto Clicker', 30, 'auto', 1)" class="rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-cyan-500/20">
-              <div class="text-base">Auto Clicker</div>
-              <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="30 + upgradeLevels.auto * 5"></span> pts</div>
-              <div class="mt-1 text-xs text-cyan-300">+1 auto/sec</div>
-            </button>
-            <button @click="buyUpgrade('boost', 'Mega Boost', 50, 'boost', 1)" class="rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-amber-500/20">
-              <div class="text-base">Mega Boost</div>
-              <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="50 + upgradeLevels.boost * 6"></span> pts</div>
-              <div class="mt-1 text-xs text-cyan-300">+1 multiplier</div>
-            </button>
+            <div class="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 p-3">
+              <button @mousedown="startHold('tap', 'Tap Boost', 10, 'tap', 1)" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-fuchsia-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-fuchsia-500/20">
+                <div class="text-base">Tap Boost</div>
+                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="10 + upgradeLevels.tap * 4"></span> pts</div>
+                <div class="mt-1 text-xs text-cyan-300">+1 per tap</div>
+              </button>
+              <div class="mt-2 flex gap-2">
+                <button @click="buyUpgrade('tap', 'Tap Boost', 10, 'tap', 1)" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                <button @click="buyBulkUpgrade('tap', 'Tap Boost', 10, 'tap', 1, 5)" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 5</button>
+              </div>
+            </div>
+            <div class="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-3">
+              <button @mousedown="startHold('auto', 'Auto Clicker', 30, 'auto', 1)" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-cyan-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-cyan-500/20">
+                <div class="text-base">Auto Clicker</div>
+                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="30 + upgradeLevels.auto * 5"></span> pts</div>
+                <div class="mt-1 text-xs text-cyan-300">+1 auto/sec</div>
+              </button>
+              <div class="mt-2 flex gap-2">
+                <button @click="buyUpgrade('auto', 'Auto Clicker', 30, 'auto', 1)" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                <button @click="buyBulkUpgrade('auto', 'Auto Clicker', 30, 'auto', 1, 3)" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 3</button>
+              </div>
+            </div>
+            <div class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3">
+              <button @mousedown="startHold('boost', 'Mega Boost', 50, 'boost', 1)" @mouseup="stopHold()" @mouseleave="stopHold()" class="w-full rounded-lg border border-amber-400/40 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-amber-500/20">
+                <div class="text-base">Mega Boost</div>
+                <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="50 + upgradeLevels.boost * 6"></span> pts</div>
+                <div class="mt-1 text-xs text-cyan-300">+1 multiplier</div>
+              </button>
+              <div class="mt-2 flex gap-2">
+                <button @click="buyUpgrade('boost', 'Mega Boost', 50, 'boost', 1)" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
+                <button @click="buyBulkUpgrade('boost', 'Mega Boost', 50, 'boost', 1, 2)" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 2</button>
+              </div>
+            </div>
           </div>
         </section>
 
