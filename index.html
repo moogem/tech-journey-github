@@ -1,55 +1,24 @@
 <!DOCTYPE html>
-<!--
-  ===================================================================
-  This is YOUR web page. Right now it is a starter template.
-  In Step 8 you will make it your own and publish it to the internet.
-
-  It already comes loaded with some popular web tools (see the <head>
-  below). You do not need to understand them yet — just know that
-  Copilot knows them all, so you can ask it for cool changes.
-
-  How to edit it:
-    - Change any text between the tags (like the words inside h1 ... /h1).
-    - The "class=..." parts control how things LOOK (colors, size, spacing).
-    - Lines like this one are comments — notes the browser ignores.
-
-  Stuck or curious? Ask Copilot Chat things like:
-    "Explain what the class names on the <body> tag do."
-    "Change my background to a sunset gradient."
-    "Add a button with an icon that Alpine.js makes interactive."
-  ===================================================================
--->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- The title that shows in the browser tab. Change it! -->
-    <title>My Showcase Page</title>
+    <title>Karar's Interactive Showcase</title>
 
-    <!-- ===== Toolkits loaded for you — Copilot knows all of these ===== -->
-
-    <!-- Tailwind CSS: style anything by adding class names, e.g. class="text-xl font-bold" -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Font Awesome: icons, e.g. <i class="fa-solid fa-heart"></i> -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-
-    <!-- Google Fonts: the "Poppins" font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap"
       rel="stylesheet"
     />
-
-    <!-- Alpine.js: adds simple interactivity with x-data and @click -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <script>
-      // Tell Tailwind to use the Poppins font everywhere on the page.
       tailwind.config = {
         theme: {
           extend: {
@@ -58,69 +27,121 @@
         },
       };
     </script>
+
+    <style>
+      body {
+        background-image: radial-gradient(circle at top left, rgba(255,255,255,0.25), transparent 30%), linear-gradient(135deg, #4338ca, #7c3aed, #ec4899);
+      }
+
+      .floaty {
+        animation: bob 3.5s ease-in-out infinite;
+      }
+
+      @keyframes bob {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+    </style>
   </head>
 
-  <!-- The classes below set the gradient background and center the card. -->
-  <body
-    class="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex justify-center items-start p-4"
-  >
-    <main class="bg-white w-full max-w-2xl my-12 p-10 rounded-2xl shadow-2xl">
-      <!-- ▼▼▼ START EDITING HERE ▼▼▼ -->
+  <body class="min-h-screen flex justify-center items-start p-4 text-slate-800">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute top-10 left-10 h-24 w-24 rounded-full bg-white/20 blur-3xl"></div>
+      <div class="absolute bottom-16 right-16 h-40 w-40 rounded-full bg-fuchsia-300/20 blur-3xl"></div>
+    </div>
 
-      <h1 class="text-4xl font-extrabold text-gray-900">
-        Hi, I'm [Your Name] <span class="inline-block">👋</span>
-      </h1>
-      <p class="text-lg text-gray-500 mt-1">
-        A future developer learning Git, GitHub, and Copilot.
-      </p>
+    <main class="relative z-10 w-full max-w-3xl my-10 rounded-[2rem] border border-white/50 bg-white/90 p-8 shadow-[0_25px_80px_rgba(0,0,0,0.25)] backdrop-blur xl:p-12">
+      <div x-data="{ waves: 0, mood: 'curious', factIndex: 0, facts: ['I love turning ideas into something people can click and explore.', 'I am learning how to build with GitHub and make small web experiences feel alive.', 'I enjoy mixing creativity with code and seeing it come to life.'] }" class="space-y-8">
+        <section class="rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6 text-white shadow-lg">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm uppercase tracking-[0.35em] text-white/80">Welcome</p>
+              <h1 class="mt-2 text-4xl font-extrabold sm:text-5xl">
+                Hi, I'm Karar <span class="inline-block floaty">👋</span>
+              </h1>
+              <p class="mt-3 max-w-2xl text-lg text-white/90">
+                I’m a curious builder who loves making pages feel fun, interactive, and personal.
+              </p>
+            </div>
+            <div class="hidden rounded-2xl border border-white/30 bg-white/15 p-4 text-4xl sm:block">
+              <i class="fa-solid fa-rocket"></i>
+            </div>
+          </div>
+        </section>
 
-      <h2 class="text-2xl font-semibold mt-8 pb-1 border-b-4 border-purple-400">
-        About Me
-      </h2>
-      <p class="mt-3 text-gray-700">
-        Write a sentence or two about yourself here. What school do you go to?
-        What got you interested in tech?
-      </p>
+        <section class="grid gap-4 md:grid-cols-3">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-sm font-semibold text-indigo-600">Current vibe</p>
+            <p class="mt-1 text-xl font-bold text-slate-800" x-text="mood"></p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-sm font-semibold text-indigo-600">Waves sent</p>
+            <p class="mt-1 text-xl font-bold text-slate-800" x-text="waves"></p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-sm font-semibold text-indigo-600">Fun fact</p>
+            <p class="mt-1 text-sm font-medium text-slate-700" x-text="facts[factIndex]"></p>
+          </div>
+        </section>
 
-      <h2 class="text-2xl font-semibold mt-8 pb-1 border-b-4 border-purple-400">
-        Things I'm Into
-      </h2>
-      <ul class="mt-3 space-y-1 text-gray-700 list-disc list-inside">
-        <li>Change these to your own interests</li>
-        <li>Video games, art, sports, music — anything!</li>
-        <li>Add or remove list items as you like</li>
-      </ul>
+        <section>
+          <h2 class="border-b-4 border-purple-400 pb-1 text-2xl font-semibold">
+            About Me
+          </h2>
+          <p class="mt-3 text-lg leading-8 text-slate-700">
+            I’m learning how to turn creative ideas into real web experiences. I like coding, exploring new tools, and building things that feel polished and a little magical.
+          </p>
+        </section>
 
-      <h2 class="text-2xl font-semibold mt-8 pb-1 border-b-4 border-purple-400">
-        What I'm Learning
-      </h2>
-      <p class="mt-3 text-gray-700">
-        Right now I'm learning how developers build and share software with
-        GitHub. This page is proof — I wrote it and published it myself!
-      </p>
+        <section>
+          <h2 class="border-b-4 border-purple-400 pb-1 text-2xl font-semibold">
+            Pick a vibe
+          </h2>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button @click="mood = 'curious'" class="rounded-full border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow">
+              <i class="fa-solid fa-magnifying-glass"></i> Curious
+            </button>
+            <button @click="mood = 'creative'" class="rounded-full border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow">
+              <i class="fa-solid fa-palette"></i> Creative
+            </button>
+            <button @click="mood = 'bold'" class="rounded-full border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow">
+              <i class="fa-solid fa-bolt"></i> Bold
+            </button>
+          </div>
+        </section>
 
-      <!--
-        A little interactive button, powered by Alpine.js.
-        x-data gives this box a tiny bit of "memory" (waves),
-        @click runs code when clicked, and x-text shows a value.
-      -->
-      <div x-data="{ waves: 0 }" class="mt-8">
-        <button
-          @click="waves++"
-          class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
-        >
-          <i class="fa-solid fa-hand"></i> Wave at me
-        </button>
-        <span x-show="waves > 0" class="ml-3 text-gray-600">
-          Thanks for the <span x-text="waves"></span> wave(s)! 👋
-        </span>
+        <section class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <h2 class="text-xl font-semibold text-slate-800">Things I’m Into</h2>
+          <ul class="mt-3 space-y-2 text-slate-700">
+            <li><i class="fa-solid fa-code text-purple-500"></i> Building cool web pages</li>
+            <li><i class="fa-solid fa-gamepad text-purple-500"></i> Games, design, and creative problem-solving</li>
+            <li><i class="fa-solid fa-book-open text-purple-500"></i> Learning new tools and sharing what I make</li>
+          </ul>
+        </section>
+
+        <section class="rounded-2xl border border-purple-200 bg-purple-50 p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-semibold text-slate-800">Interactive surprise</h2>
+              <p class="mt-1 text-slate-600">Click the button to send a wave and cycle through a fun fact.</p>
+            </div>
+            <button @click="waves++; factIndex = (factIndex + 1) % facts.length" class="rounded-xl bg-purple-600 px-5 py-2 font-semibold text-white shadow transition hover:bg-purple-700">
+              <i class="fa-solid fa-hand"></i> Wave at me
+            </button>
+          </div>
+          <p class="mt-4 text-sm font-medium text-slate-700" x-show="waves > 0">
+            Thanks for the <span class="font-bold text-purple-700" x-text="waves"></span> wave(s)! 🌟
+          </p>
+        </section>
       </div>
 
-      <!-- ▲▲▲ STOP EDITING HERE (or keep going — it's your page!) ▲▲▲ -->
-
-      <footer class="mt-10 text-center text-sm text-gray-400">
-        Built with <i class="fa-solid fa-heart text-purple-400"></i> during the
-        Tech Journey course.
+      <footer class="mt-8 text-center text-sm text-slate-400">
+        Built with <i class="fa-solid fa-heart text-purple-400"></i> during the Tech Journey course.
       </footer>
     </main>
   </body>
