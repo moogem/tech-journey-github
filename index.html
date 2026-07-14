@@ -89,122 +89,136 @@
     <div id="particle-layer" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
 
     <main class="relative z-10 w-full max-w-3xl my-10 rounded-[2rem] border border-fuchsia-400/30 bg-slate-900/80 p-8 shadow-[0_25px_100px_rgba(0,0,0,0.45)] backdrop-blur xl:p-12">
-      <div x-data="{ waves: 0, mood: 'curious', points: 0, totalEarned: 0, multiplier: 1, upgradeLevels: { glow: 0, nova: 0, mega: 0 }, upgradeMessage: 'Spend your points on a boost!', gameMessage: 'Hit the glowing orb to start!', factIndex: 0, facts: ['I love turning ideas into something people can click and explore.', 'I am learning how to build with GitHub and make small web experiences feel alive.', 'I enjoy mixing creativity with code and seeing it come to life.'], earnPoints() { this.points += this.multiplier; this.totalEarned += this.multiplier; this.gameMessage = 'Nice hit! Keep going!'; }, buyUpgrade(key, label, baseCost, amount) { const cost = baseCost + this.upgradeLevels[key] * 4; if (this.points >= cost) { this.points -= cost; this.upgradeLevels[key] += 1; this.multiplier += amount; this.upgradeMessage = `${label} unlocked!`; this.gameMessage = `${label} bought!`; } else { this.upgradeMessage = 'Not enough points yet.'; this.gameMessage = 'Need more points first.'; } }, resetGame() { this.points = 0; this.totalEarned = 0; this.multiplier = 1; this.upgradeLevels = { glow: 0, nova: 0, mega: 0 }; this.gameMessage = 'Reset! Try again!'; this.upgradeMessage = 'Fresh start — earn points and upgrade!'; } }" class="space-y-8">
+      <div x-data="{
+        waves: 0,
+        mood: 'curious',
+        points: 0,
+        totalClicks: 0,
+        perClick: 1,
+        multiplier: 1,
+        autoRate: 0,
+        combo: 1,
+        message: 'Tap the orb to begin!',
+        upgradeLevels: { tap: 0, auto: 0, boost: 0 },
+        factIndex: 0,
+        facts: ['I love turning ideas into something people can click and explore.', 'I am learning how to build with GitHub and make small web experiences feel alive.', 'I enjoy mixing creativity with code and seeing it come to life.'],
+        clickOrb() {
+          const gain = this.perClick * this.multiplier;
+          this.points += gain;
+          this.totalClicks += 1;
+          this.combo = Math.min(10, this.combo + 1);
+          this.message = '+' + gain + ' points';
+        },
+        buyUpgrade(key, label, cost, stat, amount) {
+          if (this.points >= cost) {
+            this.points -= cost;
+            this.upgradeLevels[key] += 1;
+            if (stat === 'tap') this.perClick += amount;
+            if (stat === 'auto') this.autoRate += amount;
+            if (stat === 'boost') this.multiplier += amount;
+            this.message = label + ' unlocked!';
+          } else {
+            this.message = 'Not enough points!';
+          }
+        },
+        resetGame() {
+          this.points = 0;
+          this.totalClicks = 0;
+          this.perClick = 1;
+          this.multiplier = 1;
+          this.autoRate = 0;
+          this.combo = 1;
+          this.upgradeLevels = { tap: 0, auto: 0, boost: 0 };
+          this.message = 'Fresh start! Build your empire.';
+        }
+      }" x-init="setInterval(() => { if (this.autoRate > 0) { this.points += this.autoRate; } }, 1000)" class="space-y-8">
         <section class="rounded-2xl border border-fuchsia-400/30 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-cyan-500 p-6 text-white shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p class="text-sm uppercase tracking-[0.35em] text-white/80">Welcome</p>
+              <p class="text-sm uppercase tracking-[0.35em] text-white/80">Pulse clicker</p>
               <h1 class="mt-2 text-4xl font-extrabold sm:text-5xl">
-                Hi, I'm Karar <span class="inline-block floaty">👋</span>
+                Karar's <span class="inline-block floaty">⚡</span> Clicker
               </h1>
               <p class="mt-3 max-w-2xl text-lg text-white/90">
-                I’m a curious builder with a love for <span id="typing-text" class="typewriter"></span>
+                Tap the orb, build your streak, and grow your glow-up with <span id="typing-text" class="typewriter"></span>
               </p>
             </div>
-            <div class="hidden rounded-2xl border border-white/30 bg-white/15 p-4 text-4xl sm:block">
-              <i class="fa-solid fa-rocket"></i>
+            <div class="rounded-2xl border border-white/30 bg-white/15 px-4 py-3 text-sm font-semibold">
+              <div>Best combo</div>
+              <div class="text-xl" x-text="combo + 'x'"></div>
             </div>
           </div>
         </section>
 
-        <section class="grid gap-4 md:grid-cols-3">
+        <section class="grid gap-4 md:grid-cols-4">
           <div class="rounded-2xl border border-slate-700 bg-slate-800/70 p-4">
-            <p class="text-sm font-semibold text-cyan-300">Current vibe</p>
-            <p class="mt-1 text-xl font-bold text-slate-100" x-text="mood"></p>
+            <p class="text-sm font-semibold text-cyan-300">Points</p>
+            <p class="mt-1 text-2xl font-bold text-slate-100" x-text="points"></p>
           </div>
           <div class="rounded-2xl border border-slate-700 bg-slate-800/70 p-4">
-            <p class="text-sm font-semibold text-cyan-300">Waves sent</p>
-            <p class="mt-1 text-xl font-bold text-slate-100" x-text="waves"></p>
+            <p class="text-sm font-semibold text-cyan-300">Per click</p>
+            <p class="mt-1 text-2xl font-bold text-slate-100" x-text="perClick * multiplier"></p>
           </div>
           <div class="rounded-2xl border border-slate-700 bg-slate-800/70 p-4">
-            <p class="text-sm font-semibold text-cyan-300">Fun fact</p>
-            <p class="mt-1 text-sm font-medium text-slate-300" x-text="facts[factIndex]"></p>
+            <p class="text-sm font-semibold text-cyan-300">Auto/sec</p>
+            <p class="mt-1 text-2xl font-bold text-slate-100" x-text="autoRate"></p>
+          </div>
+          <div class="rounded-2xl border border-slate-700 bg-slate-800/70 p-4">
+            <p class="text-sm font-semibold text-cyan-300">Total taps</p>
+            <p class="mt-1 text-2xl font-bold text-slate-100" x-text="totalClicks"></p>
           </div>
         </section>
 
-        <section>
-          <h2 class="border-b-4 border-fuchsia-400 pb-1 text-2xl font-semibold">
-            About Me
-          </h2>
-          <p class="mt-3 text-lg leading-8 text-slate-300">
-            I’m learning how to turn creative ideas into real web experiences. I like coding, exploring new tools, and building things that feel polished, playful, and just a little magical.
-          </p>
+        <section class="rounded-2xl border border-fuchsia-400/30 bg-gradient-to-br from-slate-900 to-slate-800 p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-semibold text-slate-100">Main clicker</h2>
+              <p class="mt-1 text-slate-400">Every tap feeds your energy core and pushes your score higher.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <button @click="resetGame()" class="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-cyan-400">Reset run</button>
+              <p class="text-sm text-slate-300" x-text="message"></p>
+            </div>
+          </div>
+          <div class="mt-6 flex flex-col items-center gap-4">
+            <button @click="clickOrb()" class="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-400 shadow-[0_0_35px_rgba(34,211,238,0.55)] transition hover:scale-110">
+              <span class="text-5xl font-black text-white">⚡</span>
+            </button>
+            <div class="text-center">
+              <p class="text-sm uppercase tracking-[0.25em] text-slate-500">Current gain</p>
+              <p class="text-3xl font-bold text-cyan-300" x-text="perClick * multiplier + ' pts/tap'"></p>
+            </div>
+          </div>
         </section>
 
-        <section>
-          <h2 class="border-b-4 border-fuchsia-400 pb-1 text-2xl font-semibold">
-            Pick a vibe
-          </h2>
-          <div class="mt-4 flex flex-wrap gap-3">
-            <button @click="mood = 'curious'" class="rounded-full border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-slate-100 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-400">
-              <i class="fa-solid fa-magnifying-glass"></i> Curious
+        <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
+          <h2 class="text-xl font-semibold text-slate-100">Upgrades</h2>
+          <div class="mt-4 grid gap-3 md:grid-cols-3">
+            <button @click="buyUpgrade('tap', 'Tap Boost', 10, 'tap', 1)" class="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-fuchsia-500/20">
+              <div class="text-base">Tap Boost</div>
+              <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="10 + upgradeLevels.tap * 4"></span> pts</div>
+              <div class="mt-1 text-xs text-cyan-300">+1 per tap</div>
             </button>
-            <button @click="mood = 'creative'" class="rounded-full border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-slate-100 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-400">
-              <i class="fa-solid fa-palette"></i> Creative
+            <button @click="buyUpgrade('auto', 'Auto Clicker', 30, 'auto', 1)" class="rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-cyan-500/20">
+              <div class="text-base">Auto Clicker</div>
+              <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="30 + upgradeLevels.auto * 5"></span> pts</div>
+              <div class="mt-1 text-xs text-cyan-300">+1 auto/sec</div>
             </button>
-            <button @click="mood = 'bold'" class="rounded-full border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-slate-100 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-400">
-              <i class="fa-solid fa-bolt"></i> Bold
+            <button @click="buyUpgrade('boost', 'Mega Boost', 50, 'boost', 1)" class="rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-amber-500/20">
+              <div class="text-base">Mega Boost</div>
+              <div class="mt-1 text-xs text-slate-300">Cost: <span x-text="50 + upgradeLevels.boost * 6"></span> pts</div>
+              <div class="mt-1 text-xs text-cyan-300">+1 multiplier</div>
             </button>
           </div>
         </section>
 
         <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
-          <h2 class="text-xl font-semibold text-slate-100">Things I’m Into</h2>
-          <ul class="mt-3 space-y-2 text-slate-300">
-            <li><i class="fa-solid fa-code text-fuchsia-400"></i> Building cool web pages</li>
-            <li><i class="fa-solid fa-gamepad text-fuchsia-400"></i> Games, design, and creative problem-solving</li>
-            <li><i class="fa-solid fa-book-open text-fuchsia-400"></i> Learning new tools and sharing what I make</li>
-          </ul>
-        </section>
-
-        <section class="rounded-2xl border border-cyan-400/30 bg-slate-800/70 p-5">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 class="text-xl font-semibold text-slate-100">Interactive surprise</h2>
-              <p class="mt-1 text-slate-400">Click the button to send a wave and cycle through a fun fact.</p>
-            </div>
-            <button @click="waves++; factIndex = (factIndex + 1) % facts.length" class="rounded-xl bg-gradient-to-r from-fuchsia-500 to-cyan-500 px-5 py-2 font-semibold text-white shadow transition hover:scale-105">
-              <i class="fa-solid fa-hand"></i> Wave at me
-            </button>
+          <h2 class="text-xl font-semibold text-slate-100">Progress goals</h2>
+          <div class="mt-3 space-y-2 text-sm text-slate-300">
+            <p x-show="totalClicks >= 10">✓ 10 taps reached</p>
+            <p x-show="points >= 50">✓ 50-point milestone</p>
+            <p x-show="autoRate >= 2">✓ Auto-clicker online</p>
           </div>
-          <p class="mt-4 text-sm font-medium text-slate-300" x-show="waves > 0">
-            Thanks for the <span class="font-bold text-cyan-300" x-text="waves"></span> wave(s)! 🌟
-          </p>
-        </section>
-
-        <section class="rounded-2xl border border-fuchsia-400/30 bg-gradient-to-br from-slate-900 to-slate-800 p-5">
-          <h2 class="text-xl font-semibold text-slate-100">Mini game</h2>
-          <p class="mt-2 text-slate-400">Tap the glowing orb to earn points, then spend them on upgrades.</p>
-          <div class="mt-4 flex flex-wrap items-center gap-4">
-            <button @click="earnPoints()" class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.5)] transition hover:scale-110">
-              <span class="text-3xl font-black text-white">⚡</span>
-            </button>
-            <div>
-              <p class="text-sm font-semibold text-cyan-300">Points</p>
-              <p class="text-2xl font-bold text-slate-100" x-text="points"></p>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-cyan-300">Multiplier</p>
-              <p class="text-2xl font-bold text-slate-100" x-text="multiplier + 'x'"></p>
-            </div>
-            <button @click="resetGame()" class="rounded-xl border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-cyan-400">
-              Reset
-            </button>
-          </div>
-          <div class="mt-4 flex flex-wrap gap-3">
-            <button @click="buyUpgrade('glow', 'Glow Boost', 5, 1)" class="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-fuchsia-500/20">
-              Glow Boost · <span x-text="5 + upgradeLevels.glow * 4"></span> pts
-            </button>
-            <button @click="buyUpgrade('nova', 'Nova Burst', 10, 2)" class="rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-cyan-500/20">
-              Nova Burst · <span x-text="10 + upgradeLevels.nova * 4"></span> pts
-            </button>
-            <button @click="buyUpgrade('mega', 'Mega Pulse', 20, 4)" class="rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-amber-500/20">
-              Mega Pulse · <span x-text="20 + upgradeLevels.mega * 4"></span> pts
-            </button>
-          </div>
-          <p class="mt-3 text-sm text-slate-300" x-text="gameMessage"></p>
-          <p class="mt-1 text-sm text-cyan-300" x-text="upgradeMessage"></p>
-          <p class="mt-2 text-xs uppercase tracking-[0.25em] text-slate-500">Earned total: <span x-text="totalEarned"></span></p>
         </section>
       </div>
 
