@@ -149,16 +149,28 @@
         message: 'Tap the orb to begin!',
         achievementToast: '',
         achievements: [],
+        achievementsOpen: true,
         upgradeLevels: { tap: 0, burst: 0, auto: 0, reactor: 0, boost: 0, loop: 0 },
         holdActive: false,
         holdTimer: null,
         factIndex: 0,
         facts: ['I love turning ideas into something people can click and explore.', 'I am learning how to build with GitHub and make small web experiences feel alive.', 'I enjoy mixing creativity with code and seeing it come to life.'],
-        unlockAchievement(name) {
+        unlockAchievement(name, bonus = null) {
           if (!this.achievements.includes(name)) {
             this.achievements.push(name);
             this.achievementToast = name;
             this.message = name + ' unlocked!';
+            if (bonus) {
+              if (bonus.type === 'multiplier') {
+                this.multiplier += bonus.value;
+              }
+              if (bonus.type === 'points') {
+                this.points += bonus.value;
+              }
+              if (bonus.type === 'auto') {
+                this.autoRate += bonus.value;
+              }
+            }
             setTimeout(() => {
               if (this.achievementToast === name) {
                 this.achievementToast = '';
@@ -167,12 +179,15 @@
           }
         },
         checkAchievements() {
-          if (this.totalClicks >= 10) this.unlockAchievement('First Spark');
-          if (this.points >= 100) this.unlockAchievement('Glow-Up');
-          if (this.upgradeLevels.tap >= 3) this.unlockAchievement('Tap Master');
-          if (this.autoRate >= 3) this.unlockAchievement('Auto Empire');
-          if (this.multiplier >= 3) this.unlockAchievement('Power Surge');
-          if (this.points >= 500) this.unlockAchievement('Neon Legend');
+          if (this.totalClicks >= 10) this.unlockAchievement('First Spark', { type: 'points', value: 25 });
+          if (this.points >= 100) this.unlockAchievement('Glow-Up', { type: 'multiplier', value: 1 });
+          if (this.upgradeLevels.tap >= 3) this.unlockAchievement('Tap Master', { type: 'points', value: 50 });
+          if (this.autoRate >= 3) this.unlockAchievement('Auto Empire', { type: 'auto', value: 1 });
+          if (this.multiplier >= 3) this.unlockAchievement('Power Surge', { type: 'points', value: 100 });
+          if (this.points >= 500) this.unlockAchievement('Neon Legend', { type: 'multiplier', value: 2 });
+          if (this.totalClicks >= 50) this.unlockAchievement('Combo Storm', { type: 'points', value: 75 });
+          if (this.upgradeLevels.reactor >= 1) this.unlockAchievement('Reactor Awake', { type: 'auto', value: 2 });
+          if (this.points >= 1000) this.unlockAchievement('Arcade Legend', { type: 'multiplier', value: 3 });
         },
         triggerClickBurst() {
           const orb = document.getElementById('orb-button');
@@ -311,15 +326,18 @@
         </section>
 
         <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-xl font-semibold text-slate-100">Achievements</h2>
-            <p class="text-sm text-slate-400" x-text="achievements.length + ' unlocked'"></p>
-          </div>
-          <div class="mt-4 grid gap-3 md:grid-cols-2">
-            <template x-for="achievement in ['First Spark', 'Glow-Up', 'Tap Master', 'Auto Empire', 'Power Surge', 'Neon Legend']" :key="achievement">
+          <button @click="achievementsOpen = !achievementsOpen" class="flex w-full items-center justify-between gap-3 text-left">
+            <div>
+              <h2 class="text-xl font-semibold text-slate-100">Achievements</h2>
+              <p class="text-sm text-slate-400" x-text="achievements.length + ' unlocked'"></p>
+            </div>
+            <span class="text-lg text-cyan-300" x-text="achievementsOpen ? '▾' : '▸'"></span>
+          </button>
+          <div x-show="achievementsOpen" x-transition class="mt-4 grid gap-3 md:grid-cols-2">
+            <template x-for="achievement in ['First Spark', 'Glow-Up', 'Tap Master', 'Auto Empire', 'Power Surge', 'Neon Legend', 'Combo Storm', 'Reactor Awake', 'Arcade Legend']" :key="achievement">
               <div class="rounded-xl border px-3 py-3 text-sm" :class="achievements.includes(achievement) ? 'border-cyan-400/60 bg-cyan-500/15 text-cyan-100' : 'border-slate-700 bg-slate-900/60 text-slate-400'">
                 <div class="font-semibold" x-text="achievement"></div>
-                <div class="mt-1 text-xs" x-text="achievement === 'First Spark' ? 'Reach 10 taps' : achievement === 'Glow-Up' ? 'Earn 100 points' : achievement === 'Tap Master' ? 'Own 3 tap upgrades' : achievement === 'Auto Empire' ? 'Reach 3 auto/sec' : achievement === 'Power Surge' ? 'Boost your multiplier to 3x' : 'Hit 500 points'"></div>
+                <div class="mt-1 text-xs" x-text="achievement === 'First Spark' ? 'Reach 10 taps' : achievement === 'Glow-Up' ? 'Earn 100 points' : achievement === 'Tap Master' ? 'Own 3 tap upgrades' : achievement === 'Auto Empire' ? 'Reach 3 auto/sec' : achievement === 'Power Surge' ? 'Boost your multiplier to 3x' : achievement === 'Neon Legend' ? 'Hit 500 points' : achievement === 'Combo Storm' ? 'Reach 50 taps' : achievement === 'Reactor Awake' ? 'Buy your first reactor' : 'Reach 1000 points'" ></div>
               </div>
             </template>
           </div>
