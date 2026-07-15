@@ -155,6 +155,20 @@
         performanceMode: false,
         compactMode: false,
         showParticles: true,
+        ownedThemes: ['aurora'],
+        ownedSkins: ['pulse'],
+        selectedTheme: 'aurora',
+        selectedSkin: 'pulse',
+        themeOptions: [
+          { id: 'aurora', name: 'Aurora', cost: 60, accent: 'from-fuchsia-500 to-cyan-400', description: 'The classic neon glow.' },
+          { id: 'sunset', name: 'Sunset', cost: 120, accent: 'from-amber-400 to-rose-500', description: 'Warm dusk energy.' },
+          { id: 'midnight', name: 'Midnight', cost: 160, accent: 'from-violet-700 to-slate-900', description: 'Deep-space mystery.' }
+        ],
+        skinOptions: [
+          { id: 'pulse', name: 'Pulse', cost: 50, icon: '⚡', description: 'Bright electric spark.' },
+          { id: 'nova', name: 'Nova', cost: 90, icon: '✦', description: 'Shimmering star burst.' },
+          { id: 'halo', name: 'Halo', cost: 130, icon: '◉', description: 'Soft orbit ring.' }
+        ],
         upgradeLevels: { tap: 0, burst: 0, auto: 0, reactor: 0, boost: 0, loop: 0 },
         holdActive: false,
         holdTimer: null,
@@ -167,6 +181,24 @@
           const particleLayer = document.getElementById('particle-layer');
           if (particleLayer) {
             particleLayer.style.display = this.performanceMode || !this.showParticles ? 'none' : 'block';
+          }
+        },
+        buyStyleItem(type, id, cost, name) {
+          const ownedList = type === 'theme' ? this.ownedThemes : this.ownedSkins;
+          if (ownedList.includes(id)) {
+            if (type === 'theme') this.selectedTheme = id;
+            else this.selectedSkin = id;
+            this.message = name + ' is ready to use!';
+            return;
+          }
+          if (this.points >= cost) {
+            this.points -= cost;
+            ownedList.push(id);
+            if (type === 'theme') this.selectedTheme = id;
+            else this.selectedSkin = id;
+            this.message = name + ' unlocked!';
+          } else {
+            this.message = 'Not enough points for that style!';
           }
         },
         toggleParticles() {
@@ -291,7 +323,7 @@
           this.message = 'Fresh start! Build your empire.';
         }
       }" x-init="setInterval(() => { if (this.autoRate > 0) { this.points += this.autoRate; } }, 1000); this.syncVisualSettings();" class="space-y-8">
-        <section class="rounded-2xl border border-fuchsia-400/30 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-cyan-500 p-6 text-white shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+        <section class="rounded-2xl border border-fuchsia-400/30 bg-gradient-to-r p-6 text-white shadow-[0_0_30px_rgba(34,211,238,0.2)]" :class="selectedTheme === 'aurora' ? 'from-fuchsia-600 via-violet-600 to-cyan-500' : selectedTheme === 'sunset' ? 'from-amber-500 via-orange-500 to-rose-500' : 'from-violet-700 via-indigo-700 to-slate-900'">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p class="text-sm uppercase tracking-[0.35em] text-white/80">Pulse clicker</p>
@@ -339,13 +371,16 @@
               <p class="text-sm text-slate-300" x-text="message"></p>
             </div>
           </div>
-          <div class="mt-6 flex flex-col items-center gap-4">
-            <button id="orb-button" @click="clickOrb()" class="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-400 shadow-[0_0_35px_rgba(34,211,238,0.55)] transition hover:scale-110">
-              <span class="text-5xl font-black text-white">⚡</span>
-            </button>
-            <div class="text-center">
+          <div class="mt-6 flex flex-col gap-6 lg:flex-row lg:items-center">
+            <div class="flex justify-center lg:justify-start">
+              <button id="orb-button" @click="clickOrb()" class="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br shadow-[0_0_35px_rgba(34,211,238,0.55)] transition hover:scale-110" :class="selectedTheme === 'aurora' ? 'from-fuchsia-500 to-cyan-400' : selectedTheme === 'sunset' ? 'from-amber-400 to-rose-500' : 'from-violet-700 to-indigo-500'">
+                <span class="text-5xl font-black text-white" x-text="selectedSkin === 'pulse' ? '⚡' : selectedSkin === 'nova' ? '✦' : '◉'"></span>
+              </button>
+            </div>
+            <div class="flex-1 text-center lg:text-left">
               <p class="text-sm uppercase tracking-[0.25em] text-slate-500">Current gain</p>
               <p class="text-3xl font-bold text-cyan-300" x-text="perClick * multiplier + ' pts/tap'"></p>
+              <p class="mt-2 text-sm text-slate-400">The orb now sits on the left so the action feels closer to your hands.</p>
             </div>
           </div>
         </section>
@@ -367,6 +402,7 @@
             <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-4">
               <div class="flex flex-wrap gap-2">
                 <button @click="setActiveTab('upgrades')" class="rounded-full border px-3 py-2 text-sm font-semibold transition" :class="activeTab === 'upgrades' ? 'border-cyan-400/40 bg-cyan-500/20 text-cyan-100' : 'border-slate-600 text-slate-300'">Upgrades</button>
+                <button @click="setActiveTab('shop')" class="rounded-full border px-3 py-2 text-sm font-semibold transition" :class="activeTab === 'shop' ? 'border-cyan-400/40 bg-cyan-500/20 text-cyan-100' : 'border-slate-600 text-slate-300'">Shop</button>
                 <button @click="setActiveTab('achievements')" class="rounded-full border px-3 py-2 text-sm font-semibold transition" :class="activeTab === 'achievements' ? 'border-cyan-400/40 bg-cyan-500/20 text-cyan-100' : 'border-slate-600 text-slate-300'">Achievements</button>
                 <button @click="setActiveTab('settings')" class="rounded-full border px-3 py-2 text-sm font-semibold transition" :class="activeTab === 'settings' ? 'border-cyan-400/40 bg-cyan-500/20 text-cyan-100' : 'border-slate-600 text-slate-300'">Settings</button>
               </div>
@@ -443,6 +479,55 @@
                     <div class="mt-2 flex gap-2">
                       <button @click="buyUpgrade('loop', 'Momentum Loop', 90, 'boost', 2, 'loop-card')" class="flex-1 rounded-lg border border-slate-600 px-2 py-2 text-xs font-semibold text-slate-200">Buy 1</button>
                       <button @click="buyBulkUpgrade('loop', 'Momentum Loop', 90, 'boost', 2, 1, 'loop-card')" class="flex-1 rounded-lg border border-cyan-400/40 px-2 py-2 text-xs font-semibold text-cyan-200">Bulk 1</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div x-show="activeTab === 'shop'" x-transition class="mt-4 space-y-4">
+                <div class="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 p-3 text-sm text-slate-100">
+                  <div class="font-semibold">Style shop</div>
+                  <div class="mt-1 text-xs text-slate-300">Spend points on fresh themes and skins for your orb.</div>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="rounded-xl border border-slate-700 bg-slate-900/60 p-3">
+                    <h3 class="text-sm font-semibold text-slate-100">Themes</h3>
+                    <div class="mt-3 space-y-2">
+                      <template x-for="theme in themeOptions" :key="theme.id">
+                        <div class="rounded-xl border p-3" :class="selectedTheme === theme.id ? 'border-cyan-400/50 bg-cyan-500/10' : 'border-slate-700 bg-slate-800/50'">
+                          <div class="flex items-center justify-between gap-3">
+                            <div>
+                              <div class="text-sm font-semibold text-slate-100" x-text="theme.name"></div>
+                              <div class="mt-1 text-xs text-slate-400" x-text="theme.description"></div>
+                            </div>
+                            <div class="text-right text-xs text-slate-300">
+                              <div x-text="theme.cost + ' pts'"></div>
+                              <button @click="buyStyleItem('theme', theme.id, theme.cost, theme.name)" class="mt-2 rounded-lg border border-cyan-400/40 px-3 py-1 text-[11px] font-semibold text-cyan-200" x-text="ownedThemes.includes(theme.id) ? (selectedTheme === theme.id ? 'Equipped' : 'Equip') : 'Unlock'"></button>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div class="rounded-xl border border-slate-700 bg-slate-900/60 p-3">
+                    <h3 class="text-sm font-semibold text-slate-100">Skins</h3>
+                    <div class="mt-3 space-y-2">
+                      <template x-for="skin in skinOptions" :key="skin.id">
+                        <div class="rounded-xl border p-3" :class="selectedSkin === skin.id ? 'border-cyan-400/50 bg-cyan-500/10' : 'border-slate-700 bg-slate-800/50'">
+                          <div class="flex items-center justify-between gap-3">
+                            <div>
+                              <div class="text-sm font-semibold text-slate-100" x-text="skin.name"></div>
+                              <div class="mt-1 text-xs text-slate-400" x-text="skin.description"></div>
+                            </div>
+                            <div class="text-right text-xs text-slate-300">
+                              <div x-text="skin.cost + ' pts'"></div>
+                              <button @click="buyStyleItem('skin', skin.id, skin.cost, skin.name)" class="mt-2 rounded-lg border border-cyan-400/40 px-3 py-1 text-[11px] font-semibold text-cyan-200" x-text="ownedSkins.includes(skin.id) ? (selectedSkin === skin.id ? 'Equipped' : 'Equip') : 'Unlock'"></button>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </div>
